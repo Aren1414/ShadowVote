@@ -5,34 +5,34 @@ import SolanaProvider from "@/components/SolanaProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+    subsets: ["latin"],
+    });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono"],
-  subsets: ["latin"],
-});
+    const geistMono = Geist_Mono({
+      variable: "--font-geist-mono",
+        subsets: ["latin"],
+        });
 
-export const metadata: Metadata = {
-  title: "ShadowVote",
-  description: "Private Voting Powered by Arcium on Solana",
-};
+        export const metadata: Metadata = {
+          title: "ShadowVote",
+            description: "Private Voting Powered by Arcium on Solana",
+            };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <SolanaProvider>
-          {children}
-        </SolanaProvider>
-      </body>
-    </html>
-  );
-}
+            export default function RootLayout({
+              children,
+              }: {
+                children: React.ReactNode;
+                }) {
+                  return (
+                      <html
+                            lang="en"
+                                  className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+                                      >
+                                            <body className="min-h-full flex flex-col">
+                                                    <SolanaProvider>
+                                                              {children}
+                                                                      </SolanaProvider>
+                                                                            </body>
+                                                                                </html>
+                                                                                  );
+                                                                                  }

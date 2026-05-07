@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { submitVote } from "@/lib/voteStore";
 import { polls } from "@/lib/polls";
+import {
+  storeEncryptedVote,
+  hasVoted,
+} from "@/lib/confidentialEngine";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { pollId, wallet, option } = body;
 
-    
+    // ✅ Basic validation
     if (!pollId || !wallet || !option) {
       return NextResponse.json(
         { message: "Invalid request data." },
@@ -15,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    
+    // ✅ Check if poll exists
     const poll = polls.find((p) => p.id === pollId);
 
     if (!poll) {
@@ -25,7 +28,7 @@ export async function POST(req: Request) {
       );
     }
 
-    
+    // ✅ Check if poll is still active
     const now = new Date();
     const endDate = new Date(poll.endDate);
 
@@ -36,10 +39,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = submitVote(pollId, wallet, option);
+    // ✅ Prevent duplicate voting
+    if (hasVoted(pollId, wallet)) {
+      return NextResponse.json({
+        message: "You have already voted.",
+      });
+    }
+
+    // ✅ Store encrypted vote
+    storeEncryptedVote({
+      pollId,
+      wallet,
+      option,
+    });
 
     return NextResponse.json({
-      message: result.message,
+      message: "Vote submitted confidentially 🔐",
     });
   } catch (error) {
     return NextResponse.json(

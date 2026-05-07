@@ -10,36 +10,44 @@ type TimeLeft = {
 } | null;
 
 export default function Countdown({ endDate }: { endDate: string }) {
-  const calculateTimeLeft = (): TimeLeft => {
-    const difference =
-      new Date(endDate).getTime() - new Date().getTime();
-
-    if (difference <= 0) {
-      return null;
-    }
-
-    return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor(
-        (difference / (1000 * 60 * 60)) % 24
-      ),
-      minutes: Math.floor(
-        (difference / 1000 / 60) % 60
-      ),
-      seconds: Math.floor((difference / 1000) % 60),
-    };
-  };
-
-  const [timeLeft, setTimeLeft] =
-    useState<TimeLeft>(calculateTimeLeft());
+  const [mounted, setMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const calculateTimeLeft = (): TimeLeft => {
+      const difference =
+        new Date(endDate).getTime() - new Date().getTime();
+
+      if (difference <= 0) return null;
+
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor(
+          (difference / (1000 * 60 * 60)) % 24
+        ),
+        minutes: Math.floor(
+          (difference / 1000 / 60) % 60
+        ),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endDate]);
+  }, [mounted, endDate]);
+
+  if (!mounted) return null;
 
   if (!timeLeft) {
     return (

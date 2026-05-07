@@ -14,6 +14,7 @@ function getStatus(endDate: string) {
 export default function Home() {
   const { publicKey } = useWallet();
   const [message, setMessage] = useState("");
+  const [results, setResults] = useState<Record<string, any>>({});
 
   const vote = async (pollId: string, option: string) => {
     if (!publicKey) {
@@ -35,6 +36,26 @@ export default function Home() {
     setMessage(data.message);
   };
 
+  const fetchResults = async (pollId: string) => {
+    const res = await fetch("/api/results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pollId }),
+    });
+
+    const data = await res.json();
+
+    if (!data.results) {
+      setMessage(data.message);
+      return;
+    }
+
+    setResults((prev) => ({
+      ...prev,
+      [pollId]: data,
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-10">
       <h1 className="text-4xl font-bold mb-6 text-center">
@@ -48,6 +69,7 @@ export default function Home() {
       <div className="grid gap-8 max-w-4xl mx-auto">
         {polls.map((poll) => {
           const status = getStatus(poll.endDate);
+          const pollResult = results[poll.id];
 
           return (
             <div
@@ -73,18 +95,66 @@ export default function Home() {
                 {poll.description}
               </p>
 
-              <div className="flex gap-3 flex-wrap">
-                {poll.options.map((opt) => (
+              {/* Active Poll Voting */}
+              {status === "Active" && (
+                <div className="flex gap-3 flex-wrap">
+                  {poll.options.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => vote(poll.id, opt.id)}
+                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Closed Poll Results */}
+              {status === "Closed" && (
+                <div>
                   <button
-                    key={opt.id}
-                    disabled={status === "Closed"}
-                    onClick={() => vote(poll.id, opt.id)}
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                    onClick={() => fetchResults(poll.id)}
+                    className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
                   >
-                    {opt.label}
+                    Reveal Results
                   </button>
-                ))}
-              </div>
+
+                  {pollResult && (
+                    <div>
+                      {Object.entries(pollResult.results).map(
+                        ([option, count]: any) => {
+                          const percentage =
+                            pollResult.total > 0
+                              ? Math.round(
+                                  (count / pollResult.total) * 100
+                                )
+                              : 0;
+
+                          return (
+                            <div key={option} className="mb-3">
+                              <div className="flex justify-between text-sm">
+                                <span>{option}</span>
+                                <span>
+                                  {count} votes ({percentage}%)
+                                </span>
+                              </div>
+                              <div className="h-2 bg-gray-200 rounded mt-1">
+                                <div
+                                  className="h-2 bg-black rounded"
+                                  style={{
+                                    width: `${percentage}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

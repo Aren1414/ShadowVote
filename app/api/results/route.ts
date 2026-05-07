@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
-import { getResults, getTotalVotes } from "@/lib/voteStore";
 import { polls } from "@/lib/polls";
+import {
+  confidentialTally,
+  getTotalVotes,
+} from "@/lib/confidentialEngine";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { pollId } = body;
 
+    // ✅ Validate input
     if (!pollId) {
       return NextResponse.json(
         { message: "Poll ID is required." },
@@ -14,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    
+    // ✅ Check if poll exists
     const poll = polls.find((p) => p.id === pollId);
 
     if (!poll) {
@@ -24,7 +28,7 @@ export async function POST(req: Request) {
       );
     }
 
-    
+    // ✅ Ensure poll is closed before revealing results
     const now = new Date();
     const endDate = new Date(poll.endDate);
 
@@ -35,7 +39,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const results = getResults(pollId);
+    // ✅ Confidential tally
+    const results = confidentialTally(pollId);
     const total = getTotalVotes(pollId);
 
     return NextResponse.json({

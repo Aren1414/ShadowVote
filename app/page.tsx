@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useState } from "react";
 import { polls } from "@/lib/polls";
+import Countdown from "@/components/Countdown";
 
 function getStatus(endDate: string) {
   const now = new Date();
@@ -91,18 +92,25 @@ export default function Home() {
                 </span>
               </div>
 
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 mb-2">
                 {poll.description}
               </p>
 
-              {/* Active Poll Voting */}
+              {/* ✅ Countdown اضافه شده */}
+              {status === "Active" && (
+                <div className="mb-4">
+                  <Countdown endDate={poll.endDate} />
+                </div>
+              )}
+
+              {/* ✅ Active Poll Voting */}
               {status === "Active" && (
                 <div className="flex gap-3 flex-wrap">
                   {poll.options.map((opt) => (
                     <button
                       key={opt.id}
                       onClick={() => vote(poll.id, opt.id)}
-                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
+                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
                     >
                       {opt.label}
                     </button>
@@ -110,12 +118,12 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Closed Poll Results */}
+              {/* ✅ Closed Poll Results */}
               {status === "Closed" && (
                 <div>
                   <button
                     onClick={() => fetchResults(poll.id)}
-                    className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
+                    className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                   >
                     Reveal Results
                   </button>
@@ -139,9 +147,10 @@ export default function Home() {
                                   {count} votes ({percentage}%)
                                 </span>
                               </div>
+
                               <div className="h-2 bg-gray-200 rounded mt-1">
                                 <div
-                                  className="h-2 bg-black rounded"
+                                  className="h-2 bg-black rounded transition-all duration-500"
                                   style={{
                                     width: `${percentage}%`,
                                   }}
